@@ -2,7 +2,7 @@ import os
 import sys
 
 def populate():
-	python_cat = add_cat('Python')
+	python_cat = add_cat('Python', views=128, likes=64)
 
 	add_page(cat=python_cat,
 		title="Official Python Tutorial",
@@ -16,7 +16,7 @@ def populate():
 		title="How to Think like a Computer Scientist",
 		url="http://www.greenteapress.com/thinkpython/")
 
-	django_cat = add_cat('Django')
+	django_cat = add_cat('Django', views=64, likes=32)
 
 	add_page(cat=django_cat,
 		title="Official Django Tutorial",
@@ -49,8 +49,8 @@ def add_page(cat, title, url, views=0):
 	p = Page.objects.get_or_create(category=cat, title=title, url=url, views=views)[0]
 	return p
 
-def add_cat(name):
-	c = Category.objects.get_or_create(name=name)[0]
+def add_cat(name, views=0, likes=0):
+	c = Category.objects.get_or_create(name=name, views=views, likes=likes)[0]
 	return c
 
 # Execution starts here
