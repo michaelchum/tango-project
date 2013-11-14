@@ -14,6 +14,19 @@ from rango.models import Category, Page
 # Each view must return a HttpResponse object
 # A simple HttpResponse object takes as input a string representing the the content of the page sent to the client requesting the view
 
+# We loop through each category returned, and create a URL attribute.
+# This attribute stores an encoded URL (e.g. spaces replaced with underscores).
+def encodeURL(category_list):
+	for category in category_list:
+		category.url = category.name.replace(' ', '_')
+	return
+
+# Change underscores in the category name to spaces.
+# URLs don't handle spaces well, so we encode them as underscores.
+# We can then simply replace the underscores with spaces again to get the name.
+def decodeURL(category_name_url):
+	return category_name_url.replace('_', ' ')
+	
 def index(request):
 	# Request the context of the request
 	# The context contains information such as the client's machine details for example.
@@ -26,10 +39,7 @@ def index(request):
 	category_list = Category.objects.order_by('-likes')[:5]
 	context_dict = {'categories': category_list}
 
-    # We loop through each category returned, and create a URL attribute.
-    # This attribute stores an encoded URL (e.g. spaces replaced with underscores).
-	for category in category_list:
-		category.url = category.name.replace(' ', '_')
+	encodeURL(category_list)
 
 	# Return a rendered response to send to the client.
 	# We make use of the shortcut function to make our lives easier
@@ -46,10 +56,7 @@ def category(request, category_name_url):
 	# Request our context from the request passed to us.
 	context = RequestContext(request)
 
-	# Change underscores in the category name to spaces.
-	# URLs don't handle spaces well, so we encode them as underscores.
-	# We can then simply replace the underscores with spaces again to get the name.
-	category_name = category_name_url.replace('_', ' ')
+	category_name = decodeURL(category_name_url)
 
 	# Create a context dictionary which we can pass to the template rendering engine.
 	# We start by containing the name of the category passed by the user.
