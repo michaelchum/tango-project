@@ -4,6 +4,7 @@ PROJECT_PATH = os.getcwd()
 TEMPLATE_PATH = os.path.join(PROJECT_PATH, 'templates')
 STATIC_PATH = os.path.join(PROJECT_PATH, 'static')
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'rango.db')
+MEDIA_PATH = os.path.join(PROJECT_PATH, 'media')
 
 
 DEBUG = True
