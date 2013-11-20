@@ -4,7 +4,7 @@
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from rango.forms import CategoryForm
+from rango.forms import CategoryForm, PageForm
 
 # Import the Category model
 from rango.models import Category, Page
@@ -40,7 +40,6 @@ def index(request):
 	category_most_likes = Category.objects.order_by('-likes')[:5]
 	category_most_views = Category.objects.order_by('-views')[:5] 
 	context_dict = {'categories_likes': category_most_likes, 'categories_views': category_most_views}
-
 	encodeURL(category_most_likes)
 	encodeURL(category_most_views)
 
@@ -64,6 +63,8 @@ def category(request, category_name_url):
 	# Create a context dictionary which we can pass to the template rendering engine.
 	# We start by containing the name of the category passed by the user.
 	context_dict = {'category_name': category_name}
+	# Pass category_name_url to the the template
+	context_dict['category_name_url'] = category_name_url
 
 	try:
 		# Can we find a category with the given name?
@@ -118,29 +119,29 @@ def add_category(request):
 def add_page(request, category_name_url):
 	context = RequestContext(request)
 
-	category_name = decode_url(category_name_url)
+	category_name = decodeURL(category_name_url)
 	if request.method == 'POST':
 		form = PageForm(request.POST)
 
-	if form.is_valid():
-		# This time we cannot commit straight away.
-		# Not all fields are automatically populated!
-		page = form.save(commit=False)
+		if form.is_valid():
+			# This time we cannot commit straight away.
+			# Not all fields are automatically populated!
+			page = form.save(commit=False)
 
-		# Retrieve the associated Category object so we can add it.
-		cat = Category.objects.get(name=category_name)
-		page.category = cat
+			# Retrieve the associated Category object so we can add it.
+			cat = Category.objects.get(name=category_name)
+			page.category = cat
 
-		# Also, create a default value for the number of views.
-		page.views = 0
+			# Also, create a default value for the number of views.
+			page.views = 0
 
-		# With this, we can then save our new model instance.
-		page.save()
+			# With this, we can then save our new model instance.
+			page.save()
 
-		# Now that the page is saved, display the category instead.
-		return category(request, category_name_url)
-	else:
-		print form.errors
+			# Now that the page is saved, display the category instead.
+			return category(request, category_name_url)
+		else:
+			print form.errors
 	else:
 		form = PageForm()
 
