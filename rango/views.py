@@ -9,6 +9,12 @@ from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 # Import the Category model
 from rango.models import Category, Page
 
+# Import stuff for authentication (login)
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseRedirect
+
+from django.contrib.auth.decorators import login_required
+
 # Each view takes at least one argument, a HttpRequest object which is also from django.http module
 # By convention, it is named request
 # Each view must return a HttpResponse object
@@ -218,23 +224,23 @@ def user_login(request):
 		# combination is valid - a User object is returned if it is.
 		user = authenticate(username=username, password=password)
 
-			# If we have a User object, the details are correct.
-			# If None (Python's way of representing the absence of a value), no user
-			# with matching credentials was found.
-			if user is not None:
-				# Is the account active? It could have been disabled.
-				if user.is_active:
-					# If the account is valid and active, we can log the user in.
-					# We'll send the user back to the homepage.
-					login(request, user)
-					return HttpResponseRedirect('/rango/')
-				else:
-					# An inactive account was used - no logging in!
-					return HttpResponse("Your Rango account is disabled.")
+		# If we have a User object, the details are correct.
+		# If None (Python's way of representing the absence of a value), no user
+		# with matching credentials was found.
+		if user is not None:
+			# Is the account active? It could have been disabled.
+			if user.is_active:
+				# If the account is valid and active, we can log the user in.
+				# We'll send the user back to the homepage.
+				login(request, user)
+				return HttpResponseRedirect('/rango/')
 			else:
-				# Bad login details were provided. So we can't log the user in.
-				print "Invalid login details: {0}, {1}".format(username, password)
-				return HttpResponse("Invalid login credentials.")
+				# An inactive account was used - no logging in!
+				return HttpResponse("Your Rango account is disabled.")
+		else:
+			# Bad login details were provided. So we can't log the user in.
+			print "Invalid login details: {0}, {1}".format(username, password)
+			return HttpResponse("Invalid login credentials.")
 
 	# The request is not a HTTP POST, so display the login form.
 	# This scenario would most likely be a HTTP GET.
@@ -242,6 +248,20 @@ def user_login(request):
 		# No context variables to pass to the template system, hence the
 		# blank dictionary object...
 		return render_to_response('rango/login.html', {}, context)
+
+#login_required() decorator ensures only logged in users can access the view
+
+@login_required
+def restricted(request):
+	return HttpResponse("Since you're logged in, you can see this text!")
+
+@login_required
+def user_logout(request):
+    # Since we know the user is logged in, we can now just log them out.
+    logout(request)
+
+    # Take the user back to the homepage.
+    return HttpResponseRedirect('/rango/')
 
 
 
