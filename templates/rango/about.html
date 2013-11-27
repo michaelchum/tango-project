@@ -5,7 +5,9 @@
 {% block title %}About{% endblock %}
 
 {% block body_block %}
-	<h1>Rango says...</h1>
-	Hello world! {{ boldmessage }}<br />
-	<a href="http://www.ironman.com"><img src="{% static "ironman.png" %}" href="http://www.ironman.com" alt="Picture of Rango" /></a>
+	<div class="hero-unit">
+		<h1>Rango says...</h1>
+		Hello world! {{ boldmessage }}<br />
+		<a href="http://www.ironman.com"><img src="{% static "ironman.png" %}" href="http://www.ironman.com" alt="Picture of Rango" /></a>
+	</div>
 {% endblock %}
