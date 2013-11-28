@@ -42,10 +42,11 @@ def index(request):
 	# Retrieve the top 5 only - or all if less than 5.
 	# Place the list in our context_dict dictionary which will be passed to the template engine
 	category_most_likes = Category.objects.order_by('-likes')[:5]
-	category_most_views = Category.objects.order_by('-views')[:5] 
-	context_dict = {'categories_likes': category_most_likes, 'categories_views': category_most_views}
+	categories = Category.objects.order_by('-views')[:5]
+	pages = Page.objects.order_by('-views')[:5]
+	context_dict = {'categories_likes': category_most_likes, 'categories': categories, 'pages': pages}
 	encodeURL(category_most_likes)
-	encodeURL(category_most_views)
+	encodeURL(categories)
 
 	# Return a rendered response to send to the client.
 	# We make use of the shortcut function to make our lives easier
