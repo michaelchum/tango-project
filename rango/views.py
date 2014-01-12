@@ -14,6 +14,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect
 
 from django.contrib.auth.decorators import login_required
+from rango.bing_search import run_query
 
 # Each view takes at least one argument, a HttpRequest object which is also from django.http module
 # By convention, it is named request
@@ -31,6 +32,13 @@ def encodeURL(category_list):
 # We can then simply replace the underscores with spaces again to get the name.
 def decodeURL(category_name_url):
 	return category_name_url.replace('_', ' ')
+
+def get_category_list():
+	cat_list = Category.objects.all()
+
+	encodeURL(cat_list)
+
+	return cat_list
 	
 def index(request):
 	# Request the context of the request
@@ -47,6 +55,10 @@ def index(request):
 	context_dict = {'categories_likes': category_most_likes, 'categories': categories, 'pages': pages}
 	encodeURL(category_most_likes)
 	encodeURL(categories)
+
+	# Get the category list and display on page
+	cat_list = get_category_list()
+	context_dict['cat_list'] = cat_list
 
 	# Return a rendered response to send to the client.
 	# We make use of the shortcut function to make our lives easier
@@ -263,6 +275,21 @@ def user_logout(request):
 
 	# Take the user back to the homepage.
 	return HttpResponseRedirect('/rango/')
+
+def search(request):
+	context = RequestContext(request)
+	result_list = []
+
+	if request.method == 'POST':
+		query = request.POST['query'].strip()
+
+		if query:
+			# Run our Bing function to get the results list!
+			result_list = run_query(query)
+
+	return render_to_response('rango/search.html', {'result_list': result_list}, context)
+
+
 
 
 

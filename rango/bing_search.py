@@ -44,18 +44,18 @@ def run_query(search_terms):
         opener = urllib2.build_opener(handler)
         urllib2.install_opener(opener)
 
-    # Connect to the server and read the response generated.
-    response = urllib2.urlopen(search_url).read()
+        # Connect to the server and read the response generated.
+        response = urllib2.urlopen(search_url).read()
 
-    # Convert the string response to a Python dictionary object.
-    json_response = json.loads(response)
+        # Convert the string response to a Python dictionary object.
+        json_response = json.loads(response)
 
-    # Loop through each page returned, populating out results list.
-    for result in json_response['d']['results']:
-        results.append({
-            'title': result['Title'],
-            'link': result['Url'],
-            'summary': result['Description']})
+        # Loop through each page returned, populating out results list.
+        for result in json_response['d']['results']:
+            results.append({
+                'title': result['Title'],
+                'link': result['Url'],
+                'summary': result['Description']})
 
     # Catch a URLError exception - something went wrong when connecting!
     except urllib2.URLError, e:
