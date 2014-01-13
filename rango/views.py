@@ -33,12 +33,47 @@ def encodeURL(category_list):
 def decodeURL(category_name_url):
 	return category_name_url.replace('_', ' ')
 
+def encode_url(name):
+	return name.replace(' ', '_')
+
+def decode_url(name):
+	return name.replace('_', ' ')
+
 def get_category_list():
 	cat_list = Category.objects.all()
 
 	encodeURL(cat_list)
 
 	return cat_list
+
+def get_category_list(max_results=0, starts_with=''):
+	cat_list = []
+	if starts_with:
+		cat_list = Category.objects.filter(name__startswith=starts_with)
+	else:
+		cat_list = Category.objects.all()
+
+	if max_results > 0:
+		if len(cat_list) > max_results:
+			cat_list = cat_list[:max_results]
+
+	for cat in cat_list:
+		cat.url = encode_url(cat.name)
+
+	return cat_list
+
+def suggest_category(request):
+	context = RequestContext(request)
+	cat_list = []
+	starts_with = ''
+	if request.method == 'GET':
+		starts_with = request.GET['suggestion']
+	else:
+		starts_with = request.POST['suggestion']
+
+	cat_list = get_category_list(8, starts_with)
+
+	return render_to_response('rango/category_list.html', {'cat_list': cat_list }, context)
 	
 def index(request):
 	# Request the context of the request
@@ -75,32 +110,30 @@ def category(request, category_name_url):
 	# Request our context from the request passed to us.
 	context = RequestContext(request)
 
-	category_name = decodeURL(category_name_url)
+	category_name = decode_url(category_name_url)
+
+	cat_list = get_category_list()
 
 	# Create a context dictionary which we can pass to the template rendering engine.
 	# We start by containing the name of the category passed by the user.
 	context_dict = {'category_name': category_name}
-	# Pass category_name_url to the the template
+
+	context_dict['cat_list'] = cat_list
 	context_dict['category_name_url'] = category_name_url
 
 	try:
-		# Can we find a category with the given name?
-		# If we can't, the .get() method raises a DoesNotExist exception.
-		# So the .get() method returns one model instance or raises an exception.
+		# Find the category with the given name.
+		# Raises an exception if the category doesn't exist.
+		# We also do a case insensitive match.
 		category = Category.objects.get(name=category_name)
-
-		# Retrieve all of the associated pages.
-		# Note that filter returns >= 1 model instance.
-		pages = Page.objects.filter(category=category)
-
-		# Adds our results list to the template context under name pages.
-		context_dict['pages'] = pages
-		# We also add the category object from the database to the context dictionary.
-		# We'll use this in the template to verify that the category exists.
 		context_dict['category'] = category
+		# Retrieve all the associated pages.
+		# Note that filter returns >= 1 model instance.
+		pages = Page.objects.filter(category=category).order_by('-views')
+		context_dict['pages'] = pages
 	except Category.DoesNotExist:
-		# We get here if we didn't find the specified category.
-		# Don't do anything - the template displays the "no category" message for us.
+		# We get here if the category does not exist.
+		# Will trigger the template to display the 'no category' message.
 		pass
 
 	# Go render the response and return it to the client.
@@ -276,19 +309,22 @@ def user_logout(request):
 	# Take the user back to the homepage.
 	return HttpResponseRedirect('/rango/')
 
-def search(request):
+@login_required
+def like_category(request):
 	context = RequestContext(request)
-	result_list = []
+	cat_id = None
+	if request.method == 'GET':
+		cat_id = request.GET['category_id']
 
-	if request.method == 'POST':
-		query = request.POST['query'].strip()
+	likes = 0
+	if cat_id:
+		category = Category.objects.get(id=int(cat_id))
+		if category:
+			likes = category.likes + 1
+			category.likes =  likes
+			category.save()
 
-		if query:
-			# Run our Bing function to get the results list!
-			result_list = run_query(query)
-
-	return render_to_response('rango/search.html', {'result_list': result_list}, context)
-
+	return HttpResponse(likes)
 
 
 
